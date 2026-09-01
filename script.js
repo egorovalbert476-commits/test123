@@ -497,6 +497,18 @@ function clampBalance(value) {
   return Number.isFinite(numeric) ? Math.max(0, numeric) : 0;
 }
 
+function generateUuid() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
+    const random = Math.random() * 16 | 0;
+    const value = character === 'x' ? random : (random & 0x3 | 0x8);
+    return value.toString(16);
+  });
+}
+
 function normalizeUser(user) {
   if (!user) {
     return null;
@@ -515,62 +527,65 @@ function normalizeUser(user) {
 
 async function syncUserToSupabase(user) {
   if (!supabase || !user?.username) {
-    return null;
+    return false;
   }
 
   const username = String(user.username).trim();
   if (!username) {
-    return null;
+    return false;
   }
 
   try {
-    const { data: existing, error: lookupError } = await supabase
-      .from('profiles')
-      .select('id, username, balance')
-      .eq('username', username)
-      .limit(1);
-
-    if (lookupError && lookupError.code !== 'PGRST116') {
-      console.warn('Supabase profile lookup failed:', lookupError);
-      return null;
-    }
-
     const safeBalance = clampBalance(user.balance);
     const profilePayload = {
       username,
       email: `${username}@local.user`,
       role: 'user',
-      balance: safeBalance,
-      password: String(user.password || '')
+      balance: safeBalance
     };
+
+    const { data: existing, error: lookupError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('username', username)
+      .limit(1);
+
+    if (lookupError && lookupError.code !== 'PGRST116') {
+      console.warn('Supabase profile lookup failed:', lookupError);
+      return false;
+    }
 
     if (existing && existing.length) {
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ balance: safeBalance, email: profilePayload.email, role: profilePayload.role, password: profilePayload.password })
+        .update(profilePayload)
         .eq('username', username);
 
       if (updateError) {
         console.warn('Supabase profile update failed:', updateError);
+        return false;
       }
-      return null;
+
+      return true;
     }
 
     const { error: insertError } = await supabase
       .from('profiles')
       .insert({
-        id: `${username}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`,
+        id: generateUuid(),
         ...profilePayload
       });
 
     if (insertError) {
       console.warn('Supabase profile insert failed:', insertError);
+      console.warn('Payload used:', { id: generateUuid(), ...profilePayload });
+      return false;
     }
 
-    return null;
+    return true;
   } catch (error) {
     console.warn('Supabase sync error:', error);
-    return null;
+    return false;
   }
 }
 
@@ -2017,7 +2032,9 @@ if (loginForm) {
       return;
     }
 
-    saveActiveUser(user);
+    const normalizedUser = normalizeUser({ ...user, balance: clampBalance(user.balance) });
+    saveActiveUser(normalizedUser);
+    void syncUserToSupabase(normalizedUser);
     closeLoginModal();
     updateProfileUI();
     if (loginError) {
