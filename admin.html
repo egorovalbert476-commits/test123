@@ -499,7 +499,7 @@
     <script>
       const SUPABASE_URL = 'https://xhxeuklfmlkzuftmymwx.supabase.co';
       const SUPABASE_ANON_KEY = 'sb_publishable_VTGGHT2VJ-YWIqqaONh81A_wiJ1PqBv';
-      const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const sb = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       const authScreen = document.getElementById('authScreen');
       const adminShell = document.getElementById('adminShell');
@@ -533,7 +533,7 @@
       }
 
       async function ensureProfileForAuthUser(authUser) {
-        const { data, error } = await supabase
+        const { data, error } = await sb
           .from('profiles')
           .select('*')
           .eq('id', authUser.id)
@@ -547,7 +547,7 @@
         if (data) return data;
 
         const username = (authUser.email || '').split('@')[0] || 'user';
-        const { data: created, error: insertError } = await supabase
+        const { data: created, error: insertError } = await sb
           .from('profiles')
           .insert({
             id: authUser.id,
@@ -568,7 +568,7 @@
       }
 
       async function checkAdminAccess() {
-        const { data, error } = await supabase.auth.getSession();
+        const { data, error } = await sb.auth.getSession();
 
         if (error || !data.session) {
           state.user = null;
@@ -581,7 +581,7 @@
 
         const profile = await ensureProfileForAuthUser(state.user);
         if (!profile) {
-          await supabase.auth.signOut();
+          await sb.auth.signOut();
           showAuth();
           alert('Не удалось загрузить профиль');
           return;
@@ -590,7 +590,7 @@
         state.profile = profile;
 
         if (state.profile.role !== 'admin') {
-          await supabase.auth.signOut();
+          await sb.auth.signOut();
           showAuth();
           alert('У вас нет прав администратора');
           return;
@@ -612,7 +612,7 @@
           return;
         }
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await sb.auth.signInWithPassword({
           email,
           password
         });
@@ -633,7 +633,7 @@
         state.profile = profile;
 
         if (profile.role !== 'admin') {
-          await supabase.auth.signOut();
+          await sb.auth.signOut();
           showAuth();
           alert('Этот аккаунт не является администратором');
           return;
@@ -645,7 +645,7 @@
       });
 
       document.getElementById('logoutBtn').addEventListener('click', async () => {
-        await supabase.auth.signOut();
+        await sb.auth.signOut();
         state.user = null;
         state.profile = null;
         showAuth();
@@ -664,7 +664,7 @@
       });
 
       async function loadUsers() {
-        const { data, error } = await supabase
+        const { data, error } = await sb
           .from('profiles')
           .select('*')
           .order('created_at', { ascending: false });
@@ -699,7 +699,7 @@
           const userId = roleBtn.dataset.userRole;
           const role = roleBtn.dataset.role;
 
-          const { error } = await supabase
+          const { error } = await sb
             .from('profiles')
             .update({ role })
             .eq('id', userId);
@@ -715,7 +715,7 @@
         const addBalanceBtn = event.target.closest('[data-user-balance-add]');
         if (addBalanceBtn) {
           const userId = addBalanceBtn.dataset.userBalanceAdd;
-          const { data, error } = await supabase
+          const { data, error } = await sb
             .from('profiles')
             .select('balance')
             .eq('id', userId)
@@ -728,7 +728,7 @@
 
           const nextBalance = Number(data?.balance || 0) + 50;
 
-          const { error: updateError } = await supabase
+          const { error: updateError } = await sb
             .from('profiles')
             .update({ balance: nextBalance })
             .eq('id', userId);
@@ -744,7 +744,7 @@
         const removeBalanceBtn = event.target.closest('[data-user-balance-remove]');
         if (removeBalanceBtn) {
           const userId = removeBalanceBtn.dataset.userBalanceRemove;
-          const { data, error } = await supabase
+          const { data, error } = await sb
             .from('profiles')
             .select('balance')
             .eq('id', userId)
@@ -757,7 +757,7 @@
 
           const nextBalance = Math.max(0, Number(data?.balance || 0) - 50);
 
-          const { error: updateError } = await supabase
+          const { error: updateError } = await sb
             .from('profiles')
             .update({ balance: nextBalance })
             .eq('id', userId);
@@ -772,7 +772,7 @@
       });
 
       async function loadGroups() {
-        const { data: groups, error: groupError } = await supabase
+        const { data: groups, error: groupError } = await sb
           .from('case_groups')
           .select('*')
           .order('sort_order', { ascending: true });
@@ -782,7 +782,7 @@
           return;
         }
 
-        const { data: cases, error: caseError } = await supabase
+        const { data: cases, error: caseError } = await sb
           .from('cases')
           .select('*')
           .order('sort_order', { ascending: true });
@@ -840,7 +840,7 @@
           return;
         }
 
-        const { error } = await supabase
+        const { error } = await sb
           .from('case_groups')
           .insert({
             slug,
@@ -872,7 +872,7 @@
           return;
         }
 
-        const { error } = await supabase
+        const { error } = await sb
           .from('cases')
           .insert({
             group_id: groupId,
@@ -899,7 +899,7 @@
         if (deleteGroupBtn) {
           const groupId = deleteGroupBtn.dataset.deleteGroup;
 
-          const { error } = await supabase
+          const { error } = await sb
             .from('case_groups')
             .delete()
             .eq('id', groupId);
@@ -916,7 +916,7 @@
         if (deleteCaseBtn) {
           const caseId = deleteCaseBtn.dataset.deleteCase;
 
-          const { error } = await supabase
+          const { error } = await sb
             .from('cases')
             .delete()
             .eq('id', caseId);
@@ -931,7 +931,7 @@
       });
 
       async function loadSettings() {
-        const { data, error } = await supabase
+        const { data, error } = await sb
           .from('site_settings')
           .select('*');
 
@@ -970,7 +970,7 @@
           payload.push({ key: 'site_currency', value: { value: currency } });
         }
 
-        const { error } = await supabase
+        const { error } = await sb
           .from('site_settings')
           .upsert(payload, { onConflict: 'key' });
 
@@ -982,7 +982,7 @@
         alert('Настройки сохранены');
       });
 
-      supabase
+      sb
         .channel('cb_admin_realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async () => {
           if (state.profile?.role === 'admin') {
