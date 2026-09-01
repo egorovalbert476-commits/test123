@@ -361,26 +361,7 @@
     </style>
   </head>
   <body>
-    <div id="authScreen" class="auth-screen">
-      <div class="auth-card">
-        <h1 class="auth-title">CB Admin</h1>
-        <form id="loginForm" class="auth-form">
-          <div>
-            <label class="label" for="loginEmail">Email</label>
-            <input id="loginEmail" class="field" type="email" placeholder="admin@site.com" required />
-          </div>
-
-          <div>
-            <label class="label" for="loginPassword">Пароль</label>
-            <input id="loginPassword" class="field" type="password" placeholder="••••••••" required />
-          </div>
-
-          <button type="submit" class="btn">Войти в админку</button>
-        </form>
-      </div>
-    </div>
-
-    <div id="adminShell" class="admin-shell hidden">
+    <div id="adminShell" class="admin-shell">
       <header class="topbar">
         <div class="topbar__left">
           <div class="brand">CB Admin</div>
@@ -392,8 +373,7 @@
         </div>
 
         <div class="inline-actions">
-          <span id="currentUserBadge" class="muted">Загрузка...</span>
-          <button id="logoutBtn" class="btn secondary" type="button">Выйти</button>
+          <span id="currentUserBadge" class="muted">Админ режим</span>
         </div>
       </header>
 
@@ -501,155 +481,19 @@
       const SUPABASE_ANON_KEY = 'sb_publishable_VTGGHT2VJ-YWIqqaONh81A_wiJ1PqBv';
       const sb = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      const authScreen = document.getElementById('authScreen');
       const adminShell = document.getElementById('adminShell');
-      const loginForm = document.getElementById('loginForm');
       const usersTableBody = document.getElementById('usersTableBody');
       const caseGroupsList = document.getElementById('caseGroupsList');
       const caseGroupSelect = document.getElementById('caseGroupSelect');
       const currentUserBadge = document.getElementById('currentUserBadge');
 
-      let state = {
-        user: null,
-        profile: null
-      };
-
-      function showAuth() {
-        authScreen.classList.remove('hidden');
-        adminShell.classList.add('hidden');
+      function setCurrentUserBadge() {
+        currentUserBadge.textContent = 'Админ режим';
       }
 
       function showAdmin() {
-        authScreen.classList.add('hidden');
         adminShell.classList.remove('hidden');
       }
-
-      function setCurrentUserBadge() {
-        if (!state.profile) {
-          currentUserBadge.textContent = 'Не авторизован';
-          return;
-        }
-        currentUserBadge.textContent = `${state.profile.username || state.user.email} · ${state.profile.role}`;
-      }
-
-      async function ensureProfileForAuthUser(authUser) {
-        const { data, error } = await sb
-          .from('profiles')
-          .select('*')
-          .eq('id', authUser.id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') {
-          console.error(error);
-          return null;
-        }
-
-        if (data) return data;
-
-        const username = (authUser.email || '').split('@')[0] || 'user';
-        const { data: created, error: insertError } = await sb
-          .from('profiles')
-          .insert({
-            id: authUser.id,
-            email: authUser.email,
-            username,
-            role: 'user',
-            balance: 0
-          })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error(insertError);
-          return null;
-        }
-
-        return created;
-      }
-
-      async function checkAdminAccess() {
-        const { data, error } = await sb.auth.getSession();
-
-        if (error || !data.session) {
-          state.user = null;
-          state.profile = null;
-          showAuth();
-          return;
-        }
-
-        state.user = data.session.user;
-
-        const profile = await ensureProfileForAuthUser(state.user);
-        if (!profile) {
-          await sb.auth.signOut();
-          showAuth();
-          alert('Не удалось загрузить профиль');
-          return;
-        }
-
-        state.profile = profile;
-
-        if (state.profile.role !== 'admin') {
-          await sb.auth.signOut();
-          showAuth();
-          alert('У вас нет прав администратора');
-          return;
-        }
-
-        setCurrentUserBadge();
-        showAdmin();
-        await Promise.all([loadUsers(), loadGroups(), loadSettings()]);
-      }
-
-      loginForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        const email = document.getElementById('loginEmail').value.trim();
-        const password = document.getElementById('loginPassword').value.trim();
-
-        if (!email || !password) {
-          alert('Введите email и пароль');
-          return;
-        }
-
-        const { data, error } = await sb.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (error) {
-          alert(error.message);
-          return;
-        }
-
-        const profile = await ensureProfileForAuthUser(data.user);
-
-        if (!profile) {
-          alert('Не удалось получить профиль пользователя');
-          return;
-        }
-
-        state.user = data.user;
-        state.profile = profile;
-
-        if (profile.role !== 'admin') {
-          await sb.auth.signOut();
-          showAuth();
-          alert('Этот аккаунт не является администратором');
-          return;
-        }
-
-        setCurrentUserBadge();
-        showAdmin();
-        await Promise.all([loadUsers(), loadGroups(), loadSettings()]);
-      });
-
-      document.getElementById('logoutBtn').addEventListener('click', async () => {
-        await sb.auth.signOut();
-        state.user = null;
-        state.profile = null;
-        showAuth();
-      });
 
       document.querySelectorAll('.tab').forEach((tab) => {
         tab.addEventListener('click', () => {
@@ -985,23 +829,19 @@
       sb
         .channel('cb_admin_realtime')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async () => {
-          if (state.profile?.role === 'admin') {
-            await loadUsers();
-          }
+          await loadUsers();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'case_groups' }, async () => {
-          if (state.profile?.role === 'admin') {
-            await loadGroups();
-          }
+          await loadGroups();
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'cases' }, async () => {
-          if (state.profile?.role === 'admin') {
-            await loadGroups();
-          }
+          await loadGroups();
         })
         .subscribe();
 
-      checkAdminAccess();
+      setCurrentUserBadge();
+      showAdmin();
+      Promise.all([loadUsers(), loadGroups(), loadSettings()]);
     </script>
   </body>
 </html>
