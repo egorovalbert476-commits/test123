@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CB Admin</title>
+    <style>
+      :root {
+        --bg: #070b13;
+        --surface: #121b2b;
+        --surface-2: #0d1523;
+        --line: rgba(255,255,255,0.12);
+        --line-soft: rgba(255,255,255,0.08);
+        --text: #f4f7fb;
+        --muted: rgba(255,255,255,0.7);
+        --accent: #7d5dff;
+        --accent-2: #9a82ff;
+        --green: #4bd68a;
+        --red: #ff6988;
+        --yellow: #f8d76a;
+        --shadow: rgba(0, 0, 0, 0.32);
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+      }
+
+      .hidden { display: none !important; }
+
+      .auth-screen {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .auth-card {
+        width: min(100%, 420px);
+        background: rgba(18,27,43,0.96);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 28px 22px;
+        box-shadow: 0 20px 60px var(--shadow);
+      }
+
+      h1, h2, h3, p {
+        margin-top: 0;
+      }
+
+      .auth-title {
+        margin-bottom: 18px;
+        font-size: 2rem;
+      }
+
+      .auth-form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .field {
+        width: 100%;
+        min-height: 46px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+        color: var(--text);
+        padding: 0 12px;
+        font-size: 0.96rem;
+        outline: none;
+      }
+
+      .field::placeholder { color: rgba(255,255,255,0.45); }
+
+      .btn {
+        min-height: 46px;
+        border: none;
+        border-radius: 10px;
+        padding: 0 16px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        color: var(--text);
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      }
+
+      .btn.secondary {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--line);
+      }
+
+      .btn.danger {
+        background: linear-gradient(90deg, #ff617d, #ff7b95);
+      }
+
+      .btn.success {
+        background: linear-gradient(90deg, var(--green), #59d5a0);
+      }
+
+      .admin-shell {
+        width: 100%;
+        min-height: 100vh;
+        background: var(--bg);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--line-soft);
+        background: rgba(13,21,35,0.9);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+
+      .topbar__left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .tab-list {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .tab {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+        color: var(--text);
+        min-width: 130px;
+        min-height: 42px;
+        padding: 0 14px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .tab.active {
+        border-color: rgba(125, 93, 255, 0.6);
+        background: rgba(125, 93, 255, 0.14);
+      }
+
+      .content {
+        padding: 22px;
+      }
+
+      .panel {
+        display: none;
+      }
+
+      .panel.active {
+        display: block;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .card {
+        background: rgba(18,27,43,0.96);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 18px 40px var(--shadow);
+      }
+
+      .card h3 {
+        margin-bottom: 14px;
+        font-size: 1rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 0.74rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th, td {
+        text-align: left;
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--line-soft);
+        vertical-align: middle;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .role-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 88px;
+        min-height: 28px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.03);
+        color: var(--text);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0 10px;
+      }
+
+      .role-badge.admin { border-color: rgba(125, 93, 255, 0.5); color: #d9d2ff; background: rgba(125,93,255,0.12); }
+      .role-badge.user { border-color: rgba(255,255,255,0.2); }
+      .role-badge.moderator { border-color: rgba(248,215,106,0.4); color: #f9ecb4; background: rgba(248,215,106,0.08); }
+
+      .inline-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.03);
+        color: var(--text);
+        border-radius: 9px;
+        min-height: 32px;
+        padding: 0 8px;
+        font-size: 0.76rem;
+        cursor: pointer;
+      }
+
+      .chip.primary {
+        background: rgba(125,93,255,0.14);
+        border-color: rgba(125,93,255,0.5);
+      }
+
+      .chip.danger {
+        background: rgba(255,105,136,0.09);
+        border-color: rgba(255,105,136,0.35);
+        color: #ffd0d9;
+      }
+
+      .group-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+      }
+
+      .group-item {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        padding: 14px;
+      }
+
+      .group-item__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .group-item__title {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .case-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .case-item {
+        display: grid;
+        grid-template-columns: 72px 1fr auto;
+        gap: 10px;
+        align-items: center;
+        background: rgba(255,255,255,0.015);
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        padding: 8px;
+      }
+
+      .case-item__img {
+        width: 72px;
+        height: 72px;
+        object-fit: cover;
+        border-radius: 10px;
+        border: 1px solid var(--line-soft);
+        background: rgba(255,255,255,0.02);
+      }
+
+      .case-item__meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .muted { color: var(--muted); }
+
+      .empty {
+        padding: 18px;
+        border: 1px dashed var(--line);
+        color: var(--muted);
+        background: rgba(255,255,255,0.02);
+        border-radius: 12px;
+      }
+
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="adminShell" class="admin-shell">
+      <header class="topbar">
+        <div class="topbar__left">
+          <div class="brand">CB Admin</div>
+          <nav class="tab-list" aria-label="Навигация">
+            <button class="tab active" type="button" data-panel="users">Пользователи</button>
+            <button class="tab" type="button" data-panel="cases">Кейсы</button>
+            <button class="tab" type="button" data-panel="settings">Настройки</button>
+          </nav>
+        </div>
+
+        <div class="inline-actions">
+          <span id="currentUserBadge" class="muted">Админ режим</span>
+        </div>
+      </header>
+
+      <main class="content">
+        <section id="panel-users" class="panel active">
+          <div class="card">
+            <h3>Пользователи</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Роль</th>
+                  <th>Баланс</th>
+                  <th>Действия</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="panel-cases" class="panel">
+          <div class="grid">
+            <div class="card">
+              <h3>Создать раздел</h3>
+              <form id="createGroupForm" class="form-grid">
+                <div>
+                  <label class="label" for="groupSlug">Slug</label>
+                  <input id="groupSlug" class="field" type="text" placeholder="cs2" required />
+                </div>
+
+                <div>
+                  <label class="label" for="groupTitle">Название</label>
+                  <input id="groupTitle" class="field" type="text" placeholder="CS2" required />
+                </div>
+
+                <button class="btn" type="submit">Создать раздел</button>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3>Создать кейс</h3>
+              <form id="createCaseForm" class="form-grid">
+                <div>
+                  <label class="label" for="caseGroupSelect">Раздел</label>
+                  <select id="caseGroupSelect" class="field"></select>
+                </div>
+
+                <div>
+                  <label class="label" for="caseSlug">Slug</label>
+                  <input id="caseSlug" class="field" type="text" placeholder="mirage-case" required />
+                </div>
+
+                <div>
+                  <label class="label" for="caseTitle">Название кейса</label>
+                  <input id="caseTitle" class="field" type="text" placeholder="Mirage Case" required />
+                </div>
+
+                <div>
+                  <label class="label" for="casePrice">Цена</label>
+                  <input id="casePrice" class="field" type="number" min="0" step="1" placeholder="200" required />
+                </div>
+
+                <div>
+                  <label class="label" for="caseImage">Image URL</label>
+                  <input id="caseImage" class="field" type="text" placeholder="https://..." />
+                </div>
+
+                <button class="btn" type="submit">Создать кейс</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 20px;">
+            <h3>Разделы и кейсы</h3>
+            <div id="caseGroupsList" class="group-list"></div>
+          </div>
+        </section>
+
+        <section id="panel-settings" class="panel">
+          <div class="card">
+            <h3>Настройки сайта</h3>
+            <form id="settingsForm" class="form-grid">
+              <div>
+                <label class="label" for="siteTitle">Название сайта</label>
+                <input id="siteTitle" class="field" type="text" placeholder="CB" />
+              </div>
+
+              <div>
+                <label class="label" for="siteCurrency">Валюта</label>
+                <input id="siteCurrency" class="field" type="text" placeholder="₽" />
+              </div>
+
+              <button class="btn" type="submit">Сохранить настройки</button>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const SUPABASE_URL = 'https://xhxeuklfmlkzuftmymwx.supabase.co';
+      const SUPABASE_ANON_KEY = 'sb_publishable_VTGGHT2VJ-YWIqqaONh81A_wiJ1PqBv';
+      const sb = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      const adminShell = document.getElementById('adminShell');
+      const usersTableBody = document.getElementById('usersTableBody');
+      const caseGroupsList = document.getElementById('caseGroupsList');
+      const caseGroupSelect = document.getElementById('caseGroupSelect');
+      const currentUserBadge = document.getElementById('currentUserBadge');
+
+      function setCurrentUserBadge() {
+        currentUserBadge.textContent = 'Админ режим';
+      }
+
+      function showAdmin() {
+        adminShell.classList.remove('hidden');
+      }
+
+      document.querySelectorAll('.tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const panelName = tab.dataset.panel;
+          document.querySelectorAll('.panel').forEach((panel) => {
+            panel.classList.toggle('active', panel.id === `panel-${panelName}`);
+          });
+          document.querySelectorAll('.tab').forEach((button) => {
+            button.classList.toggle('active', button === tab);
+          });
+        });
+      });
+
+      async function loadUsers() {
+        const { data, error } = await sb
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        usersTableBody.innerHTML = data.map((user) => `
+          <tr>
+            <td>${user.username || '-'}</td>
+            <td>${user.email || '-'}</td>
+            <td><span class="role-badge ${user.role || 'user'}">${user.role || 'user'}</span></td>
+            <td>${Number(user.balance || 0).toFixed(2)}</td>
+            <td>
+              <div class="inline-actions">
+                <button class="chip primary" type="button" data-user-role="${user.id}" data-role="admin">Admin</button>
+                <button class="chip" type="button" data-user-role="${user.id}" data-role="moderator">Mod</button>
+                <button class="chip" type="button" data-user-role="${user.id}" data-role="user">User</button>
+                <button class="chip" type="button" data-user-balance-add="${user.id}">+50</button>
+                <button class="chip danger" type="button" data-user-balance-remove="${user.id}">-50</button>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      document.addEventListener('click', async (event) => {
+        const roleBtn = event.target.closest('[data-user-role]');
+        if (roleBtn) {
+          const userId = roleBtn.dataset.userRole;
+          const role = roleBtn.dataset.role;
+
+          const { error } = await sb
+            .from('profiles')
+            .update({ role })
+            .eq('id', userId);
+
+          if (error) {
+            alert(error.message);
+            return;
+          }
+
+          await loadUsers();
+        }
+
+        const addBalanceBtn = event.target.closest('[data-user-balance-add]');
+        if (addBalanceBtn) {
+          const userId = addBalanceBtn.dataset.userBalanceAdd;
+          const { data, error } = await sb
+            .from('profiles')
+            .select('balance')
+            .eq('id', userId)
+            .single();
+
+          if (error) {
+            console.error(error);
+            return;
+          }
+
+          const nextBalance = Number(data?.balance || 0) + 50;
+
+          const { error: updateError } = await sb
+            .from('profiles')
+            .update({ balance: nextBalance })
+            .eq('id', userId);
+
+          if (updateError) {
+            alert(updateError.message);
+            return;
+          }
+
+          await loadUsers();
+        }
+
+        const removeBalanceBtn = event.target.closest('[data-user-balance-remove]');
+        if (removeBalanceBtn) {
+          const userId = removeBalanceBtn.dataset.userBalanceRemove;
+          const { data, error } = await sb
+            .from('profiles')
+            .select('balance')
+            .eq('id', userId)
+            .single();
+
+          if (error) {
+            console.error(error);
+            return;
+          }
+
+          const nextBalance = Math.max(0, Number(data?.balance || 0) - 50);
+
+          const { error: updateError } = await sb
+            .from('profiles')
+            .update({ balance: nextBalance })
+            .eq('id', userId);
+
+          if (updateError) {
+            alert(updateError.message);
+            return;
+          }
+
+          await loadUsers();
+        }
+      });
+
+      async function loadGroups() {
+        const { data: groups, error: groupError } = await sb
+          .from('case_groups')
+          .select('*')
+          .order('sort_order', { ascending: true });
+
+        if (groupError) {
+          console.error(groupError);
+          return;
+        }
+
+        const { data: cases, error: caseError } = await sb
+          .from('cases')
+          .select('*')
+          .order('sort_order', { ascending: true });
+
+        if (caseError) {
+          console.error(caseError);
+          return;
+        }
+
+        const options = groups.map((group) => `
+          <option value="${group.id}">${group.title}</option>
+        `).join('');
+
+        caseGroupSelect.innerHTML = options || '<option value="">Нет разделов</option>';
+
+        caseGroupsList.innerHTML = groups.length
+          ? groups.map((group) => {
+              const groupCases = (cases || []).filter((item) => item.group_id === group.id);
+
+              return `
+                <div class="group-item">
+                  <div class="group-item__header">
+                    <div class="group-item__title">${group.title}</div>
+                    <button class="chip danger" type="button" data-delete-group="${group.id}">Удалить</button>
+                  </div>
+
+                  <div class="case-list">
+                    ${groupCases.length
+                      ? groupCases.map((item) => `
+                          <div class="case-item">
+                            <img class="case-item__img" src="${item.image_url || 'https://placehold.co/72x72'}" alt="${item.title}" />
+                            <div class="case-item__meta">
+                              <strong>${item.title}</strong>
+                              <span class="muted">${Number(item.price || 0).toFixed(0)} ₽</span>
+                            </div>
+                            <button class="chip danger" type="button" data-delete-case="${item.id}">Удалить</button>
+                          </div>
+                        `).join('')
+                      : '<div class="empty">Нет кейсов в этом разделе</div>'}
+                  </div>
+                </div>
+              `;
+            }).join('')
+          : '<div class="empty">Разделы ещё не созданы</div>';
+      }
+
+      document.getElementById('createGroupForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const slug = document.getElementById('groupSlug').value.trim();
+        const title = document.getElementById('groupTitle').value.trim();
+
+        if (!slug || !title) {
+          alert('Введите slug и название раздела');
+          return;
+        }
+
+        const { error } = await sb
+          .from('case_groups')
+          .insert({
+            slug,
+            title,
+            sort_order: 0,
+            is_active: true
+          });
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        event.target.reset();
+        await loadGroups();
+      });
+
+      document.getElementById('createCaseForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const groupId = caseGroupSelect.value;
+        const slug = document.getElementById('caseSlug').value.trim();
+        const title = document.getElementById('caseTitle').value.trim();
+        const price = Number(document.getElementById('casePrice').value || 0);
+        const imageUrl = document.getElementById('caseImage').value.trim();
+
+        if (!groupId || !slug || !title) {
+          alert('Заполните все обязательные поля');
+          return;
+        }
+
+        const { error } = await sb
+          .from('cases')
+          .insert({
+            group_id: groupId,
+            slug,
+            title,
+            price,
+            image_url: imageUrl || '',
+            accent_color: '#7d5dff',
+            is_active: true,
+            sort_order: 0
+          });
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        event.target.reset();
+        await loadGroups();
+      });
+
+      document.addEventListener('click', async (event) => {
+        const deleteGroupBtn = event.target.closest('[data-delete-group]');
+        if (deleteGroupBtn) {
+          const groupId = deleteGroupBtn.dataset.deleteGroup;
+
+          const { error } = await sb
+            .from('case_groups')
+            .delete()
+            .eq('id', groupId);
+
+          if (error) {
+            alert(error.message);
+            return;
+          }
+
+          await loadGroups();
+        }
+
+        const deleteCaseBtn = event.target.closest('[data-delete-case]');
+        if (deleteCaseBtn) {
+          const caseId = deleteCaseBtn.dataset.deleteCase;
+
+          const { error } = await sb
+            .from('cases')
+            .delete()
+            .eq('id', caseId);
+
+          if (error) {
+            alert(error.message);
+            return;
+          }
+
+          await loadGroups();
+        }
+      });
+
+      async function loadSettings() {
+        const { data, error } = await sb
+          .from('site_settings')
+          .select('*');
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        const settingsMap = {};
+        (data || []).forEach((item) => {
+          settingsMap[item.key] = item.value;
+        });
+
+        document.getElementById('siteTitle').value = settingsMap.site_title?.value || '';
+        document.getElementById('siteCurrency').value = settingsMap.site_currency?.value || '';
+      }
+
+      document.getElementById('settingsForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const title = document.getElementById('siteTitle').value.trim();
+        const currency = document.getElementById('siteCurrency').value.trim();
+
+        if (!title && !currency) {
+          alert('Введите хотя бы одно поле');
+          return;
+        }
+
+        const payload = [];
+
+        if (title) {
+          payload.push({ key: 'site_title', value: { value: title } });
+        }
+
+        if (currency) {
+          payload.push({ key: 'site_currency', value: { value: currency } });
+        }
+
+        const { error } = await sb
+          .from('site_settings')
+          .upsert(payload, { onConflict: 'key' });
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        alert('Настройки сохранены');
+      });
+
+      sb
+        .channel('cb_admin_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async () => {
+          await loadUsers();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'case_groups' }, async () => {
+          await loadGroups();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cases' }, async () => {
+          await loadGroups();
+        })
+        .subscribe();
+
+      setCurrentUserBadge();
+      showAdmin();
+      Promise.all([loadUsers(), loadGroups(), loadSettings()]);
+    </script>
+  </body>
+</html>
