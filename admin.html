@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LOOTIXDROP - ADMIN PANEL</title>
+    <style>
+      :root {
+        --bg: #070b13;
+        --surface: #121b2b;
+        --surface-2: #0d1523;
+        --line: rgba(255,255,255,0.12);
+        --line-soft: rgba(255,255,255,0.08);
+        --text: #f4f7fb;
+        --muted: rgba(255,255,255,0.7);
+        --accent: #7d5dff;
+        --accent-2: #9a82ff;
+        --green: #4bd68a;
+        --red: #ff6988;
+        --yellow: #f8d76a;
+        --shadow: rgba(0, 0, 0, 0.32);
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+      }
+
+      .hidden { display: none !important; }
+
+      .auth-screen {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+
+      .auth-card {
+        width: min(100%, 420px);
+        background: rgba(18,27,43,0.96);
+        border: 1px solid var(--line);
+        border-radius: 0;
+        padding: 28px 22px;
+        box-shadow: 0 20px 60px var(--shadow);
+      }
+
+      h1, h2, h3, p {
+        margin-top: 0;
+      }
+
+      .auth-title {
+        margin-bottom: 18px;
+        font-size: 2rem;
+      }
+
+      .auth-form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .field {
+        width: 100%;
+        min-height: 46px;
+        border-radius: 0;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+        color: var(--text);
+        padding: 0 12px;
+        font-size: 0.96rem;
+        outline: none;
+      }
+
+      .field::placeholder { color: rgba(255,255,255,0.45); }
+
+      .btn {
+        min-height: 46px;
+        border: none;
+        border-radius: 0;
+        padding: 0 16px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        color: var(--text);
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      }
+
+      .btn.secondary {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--line);
+      }
+
+      .btn.danger {
+        background: linear-gradient(90deg, #ff617d, #ff7b95);
+      }
+
+      .btn.success {
+        background: linear-gradient(90deg, var(--green), #59d5a0);
+      }
+
+      .admin-shell {
+        width: 100%;
+        min-height: 100vh;
+        background: var(--bg);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--line-soft);
+        background: rgba(13,21,35,0.9);
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+
+      .topbar__left {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        font-size: 1.1rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .tab-list {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .tab {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.02);
+        color: var(--text);
+        min-width: 130px;
+        min-height: 42px;
+        padding: 0 14px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .tab.active {
+        border-color: rgba(125, 93, 255, 0.6);
+        background: rgba(125, 93, 255, 0.14);
+      }
+
+      .content {
+        padding: 22px;
+      }
+
+      .panel {
+        display: none;
+      }
+
+      .panel.active {
+        display: block;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .card {
+        background: rgba(18,27,43,0.96);
+        border: 1px solid var(--line);
+        border-radius: 0;
+        padding: 18px;
+        box-shadow: 0 18px 40px var(--shadow);
+      }
+
+      .card h3 {
+        margin-bottom: 14px;
+        font-size: 1rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      .label {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--muted);
+        font-size: 0.74rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th, td {
+        text-align: left;
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--line-soft);
+        vertical-align: middle;
+      }
+
+      th {
+        color: var(--muted);
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .role-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 88px;
+        min-height: 28px;
+        border-radius: 0;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.03);
+        color: var(--text);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0 10px;
+      }
+
+      .role-badge.admin { border-color: rgba(125, 93, 255, 0.5); color: #d9d2ff; background: rgba(125,93,255,0.12); }
+      .role-badge.user { border-color: rgba(255,255,255,0.2); }
+      .role-badge.moderator { border-color: rgba(248,215,106,0.4); color: #f9ecb4; background: rgba(248,215,106,0.08); }
+
+      .inline-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .chip {
+        appearance: none;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.03);
+        color: var(--text);
+        border-radius: 0;
+        min-height: 32px;
+        padding: 0 8px;
+        font-size: 0.76rem;
+        cursor: pointer;
+      }
+
+      .chip.primary {
+        background: rgba(125,93,255,0.14);
+        border-color: rgba(125,93,255,0.5);
+      }
+
+      .chip.danger {
+        background: rgba(255,105,136,0.09);
+        border-color: rgba(255,105,136,0.35);
+        color: #ffd0d9;
+      }
+
+      .group-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+        margin-top: 18px;
+      }
+
+      .group-item {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--line-soft);
+        border-radius: 0;
+        padding: 14px;
+      }
+
+      .group-item__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .group-item__title {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .case-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .case-item {
+        display: grid;
+        grid-template-columns: 72px 1fr auto;
+        gap: 10px;
+        align-items: center;
+        background: rgba(255,255,255,0.015);
+        border: 1px solid var(--line-soft);
+        border-radius: 0;
+        padding: 8px;
+      }
+
+      .case-item__img {
+        width: 72px;
+        height: 72px;
+        object-fit: cover;
+        border-radius: 0;
+        border: 1px solid var(--line-soft);
+        background: rgba(255,255,255,0.02);
+      }
+
+      .case-item__meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .item-case-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+      }
+
+      .item-case-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      .item-case-link input {
+        width: 72px;
+        min-height: 28px;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+        padding: 0 6px;
+      }
+
+      .item-edit-fields {
+        display: grid;
+        gap: 6px;
+        margin-top: 6px;
+      }
+
+      .item-edit-fields input,
+      .item-edit-fields select {
+        min-height: 30px;
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+        padding: 0 7px;
+      }
+
+      .muted { color: var(--muted); }
+
+      .chance-controls {
+        display: grid;
+        gap: 4px;
+        min-width: 145px;
+      }
+
+      .chance-controls label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .chance-controls input {
+        width: 62px;
+        min-height: 26px;
+        border: 1px solid var(--line);
+        border-radius: 0;
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+        padding: 0 5px;
+      }
+
+      .settings-chance-box {
+        display: grid;
+        gap: 14px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.03);
+      }
+
+      .chance-switch {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text);
+        font-weight: 700;
+      }
+
+      .chance-switch strong { color: var(--green); font-size: 0.8rem; }
+      .settings-chance-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+      .empty {
+        padding: 18px;
+        border: 1px dashed var(--line);
+        color: var(--muted);
+        background: rgba(255,255,255,0.02);
+        border-radius: 0;
+      }
+
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="adminShell" class="admin-shell">
+      <header class="topbar">
+        <div class="topbar__left">
+          <div class="brand">LOOTIXDROP - ADMIN PANEL</div>
+          <nav class="tab-list" aria-label="Навигация">
+            <button class="tab active" type="button" data-panel="users">Пользователи</button>
+            <button class="tab" type="button" data-panel="cases">Кейсы</button>
+            <button class="tab" type="button" data-panel="items">Items</button>
+            <button class="tab" type="button" data-panel="withdrawals">ВЫВОДЫ</button>
+            <button class="tab" type="button" data-panel="settings">Настройки</button>
+          </nav>
+        </div>
+
+        <div class="inline-actions">
+          <span id="currentUserBadge" class="muted">Админ режим</span>
+        </div>
+      </header>
+
+      <main class="content">
+        <section id="panel-users" class="panel active">
+          <div class="card">
+            <h3>Пользователи</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Email</th>
+                  <th>Роль</th>
+                  <th>Баланс</th>
+                  <th>Система шансов</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="panel-cases" class="panel">
+          <div class="grid">
+            <div class="card">
+              <h3>Создать раздел</h3>
+              <form id="createGroupForm" class="form-grid">
+                <div>
+                  <label class="label" for="groupSlug">Slug</label>
+                  <input id="groupSlug" class="field" type="text" placeholder="cs2" required />
+                </div>
+
+                <div>
+                  <label class="label" for="groupTitle">Название</label>
+                  <input id="groupTitle" class="field" type="text" placeholder="CS2" required />
+                </div>
+
+                <button class="btn" type="submit">Создать раздел</button>
+              </form>
+            </div>
+
+            <div class="card">
+              <h3>Создать кейс</h3>
+              <form id="createCaseForm" class="form-grid">
+                <div>
+                  <label class="label" for="caseGroupSelect">Раздел</label>
+                  <select id="caseGroupSelect" class="field"></select>
+                </div>
+
+                <div>
+                  <label class="label" for="caseSlug">Slug</label>
+                  <input id="caseSlug" class="field" type="text" placeholder="mirage-case" required />
+                </div>
+
+                <div>
+                  <label class="label" for="caseTitle">Название кейса</label>
+                  <input id="caseTitle" class="field" type="text" placeholder="Mirage Case" required />
+                </div>
+
+                <div>
+                  <label class="label" for="casePrice">Цена</label>
+                  <input id="casePrice" class="field" type="number" min="0" step="1" placeholder="200" required />
+                </div>
+
+                <div>
+                  <label class="label" for="casePayoutChance">Шанс окупа, %</label>
+                  <input id="casePayoutChance" class="field" type="number" min="0" max="100" step="0.01" value="25" required />
+                </div>
+
+                <div>
+                  <label class="label" for="caseImage">Image URL</label>
+                  <input id="caseImage" class="field" type="text" placeholder="https://..." />
+                </div>
+
+                <button class="btn" type="submit">Создать кейс</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top: 20px;">
+            <h3>Разделы и кейсы</h3>
+            <div id="caseGroupsList" class="group-list"></div>
+          </div>
+        </section>
+
+        <section id="panel-items" class="panel">
+          <div class="grid">
+            <div class="card">
+              <h3>Добавить предмет</h3>
+              <form id="createItemForm" class="form-grid">
+                <div>
+                  <label class="label" for="itemTitle">Название</label>
+                  <input id="itemTitle" class="field" type="text" placeholder="AK-47 | Redline" required />
+                </div>
+                <div>
+                  <label class="label" for="itemRarity">Редкость</label>
+                  <select id="itemRarity" class="field">
+                    <option value="gray">Gray</option>
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                    <option value="red">Red</option>
+                    <option value="purple">Purple</option>
+                    <option value="pink">Pink</option>
+                    <option value="gold">Gold</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="label" for="itemPrice">Цена</label>
+                  <input id="itemPrice" class="field" type="number" min="0" step="1" placeholder="2500" required />
+                </div>
+                <div>
+                  <label class="label" for="itemImage">Иконка скина</label>
+                  <input id="itemImage" class="field" type="url" placeholder="https://..." required />
+                </div>
+                <div>
+                  <label class="label" for="itemCaseSelect">Кейс</label>
+                  <select id="itemCaseSelect" class="field" required></select>
+                </div>
+                <div>
+                  <label class="label" for="caseDropChance">Шанс выпадения, %</label>
+                  <input id="caseDropChance" class="field" type="number" min="0" step="0.01" value="1" required />
+                </div>
+                <button class="btn" type="submit">Добавить предмет</button>
+              </form>
+            </div>
+            <div class="card">
+              <h3>Все предметы</h3>
+              <div id="itemsList" class="case-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="panel-settings" class="panel">
+          <div class="card">
+            <h3>Настройки сайта</h3>
+            <form id="settingsForm" class="form-grid">
+              <div>
+                <label class="label" for="siteTitle">Название сайта</label>
+                <input id="siteTitle" class="field" type="text" placeholder="CB" />
+              </div>
+
+              <div>
+                <label class="label" for="siteCurrency">Валюта</label>
+                <input id="siteCurrency" class="field" type="text" placeholder="₽" />
+              </div>
+
+              <button class="btn" type="submit">Сохранить настройки</button>
+            </form>
+          </div>
+        </section>
+
+        <section id="panel-withdrawals" class="panel">
+          <div class="card">
+            <h3>Заявки на вывод</h3>
+            <div id="withdrawalsList" class="case-list"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+      const SUPABASE_URL = 'https://xhxeuklfmlkzuftmymwx.supabase.co';
+      const SUPABASE_ANON_KEY = 'sb_publishable_VTGGHT2VJ-YWIqqaONh81A_wiJ1PqBv';
+      const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      const adminShell = document.getElementById('adminShell');
+      const usersTableBody = document.getElementById('usersTableBody');
+      const caseGroupsList = document.getElementById('caseGroupsList');
+      const caseGroupSelect = document.getElementById('caseGroupSelect');
+      const itemCaseSelect = document.getElementById('itemCaseSelect');
+      const itemsList = document.getElementById('itemsList');
+      const withdrawalsList = document.getElementById('withdrawalsList');
+      const currentUserBadge = document.getElementById('currentUserBadge');
+
+      function setCurrentUserBadge() {
+        currentUserBadge.textContent = 'Админ режим';
+      }
+
+      function showAdmin() {
+        adminShell.classList.remove('hidden');
+      }
+
+      document.querySelectorAll('.tab').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          const panelName = tab.dataset.panel;
+          document.querySelectorAll('.panel').forEach((panel) => {
+            panel.classList.toggle('active', panel.id === `panel-${panelName}`);
+          });
+          document.querySelectorAll('.tab').forEach((button) => {
+            button.classList.toggle('active', button === tab);
+          });
+        });
+      });
+
+      async function loadUsers() {
+        const { data, error } = await sb
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        usersTableBody.innerHTML = data.map((user) => `
+          <tr>
+            <td>${user.username || '-'}</td>
+            <td>${user.email || '-'}</td>
+            <td><span class="role-badge ${user.role || 'user'}">${user.role || 'user'}</span></td>
+            <td><input class="field user-balance-input" type="number" min="0" step="0.01" value="${Number(user.balance || 0).toFixed(2)}" data-user-balance="${user.id}" aria-label="Баланс пользователя" /></td>
+            <td>
+              <button class="chip ${user.payout_system_enabled === true ? 'danger' : 'primary'}" type="button" data-user-chance-toggle="${user.id}" data-enabled="${user.payout_system_enabled === true}">${user.payout_system_enabled === true ? 'ВЫКЛЮЧИТЬ' : 'ВКЛЮЧИТЬ'}</button>
+              <div class="chance-controls">
+                <label>Кейсы <input type="number" min="0" max="100" step="0.01" value="${Number(user.case_payout_chance ?? 25)}" data-user-chance="case_payout_chance" data-user-id="${user.id}" /></label>
+                <label>Апгрейд <input type="number" min="0" max="100" step="0.01" value="${Number(user.upgrade_payout_chance ?? 40)}" data-user-chance="upgrade_payout_chance" data-user-id="${user.id}" /></label>
+                <label>Контракт <input type="number" min="0" max="100" step="0.01" value="${Number(user.contract_payout_chance ?? 100)}" data-user-chance="contract_payout_chance" data-user-id="${user.id}" /></label>
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      async function loadWithdrawals() {
+        const { data, error } = await sb
+          .from('profiles')
+          .select('id, username, inventory')
+          .order('updated_at', { ascending: false });
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        const requests = (data || []).flatMap((user) => (Array.isArray(user.inventory) ? user.inventory : [])
+          .map((item, itemIndex) => ({ user, item, itemIndex }))
+          .filter(({ item }) => item.pendingWithdraw));
+
+        withdrawalsList.innerHTML = requests.length ? requests.map(({ user, item, itemIndex }) => `
+          <div class="case-item">
+            <img class="case-item__img" src="${item.image || 'https://placehold.co/72x72'}" alt="${item.name || 'Предмет'}" />
+            <div class="case-item__meta">
+              <strong>${user.username || 'Пользователь'} · ${item.name || 'Предмет'}</strong>
+              <span class="muted">${Number(item.price || 0).toFixed(0)} ₽ · ${item.tradeUrl || 'Трейд-ссылка не указана'}</span>
+            </div>
+            <div class="inline-actions">
+              <button class="chip success" type="button" data-confirm-withdraw="${user.id}" data-withdraw-index="${itemIndex}">Подтвердить</button>
+              <button class="chip danger" type="button" data-cancel-withdraw="${user.id}" data-withdraw-index="${itemIndex}">Отменить</button>
+            </div>
+          </div>
+        `).join('') : '<div class="empty">Активных заявок нет</div>';
+      }
+
+      document.addEventListener('change', async (event) => {
+        const chanceInput = event.target.closest('[data-user-chance]');
+        if (chanceInput) {
+          const value = Math.max(0, Math.min(100, Number(chanceInput.value || 0)));
+          chanceInput.value = value;
+          const { error } = await sb.from('profiles')
+            .update({ [chanceInput.dataset.userChance]: value })
+            .eq('id', chanceInput.dataset.userId);
+          if (error) alert(error.message);
+          return;
+        }
+
+        const balanceInput = event.target.closest('[data-user-balance]');
+        if (!balanceInput) {
+          return;
+        }
+
+        const value = Math.max(0, Number(balanceInput.value || 0));
+        balanceInput.value = value.toFixed(2);
+        const { error } = await sb.from('profiles')
+          .update({ balance: value })
+          .eq('id', balanceInput.dataset.userBalance);
+
+        if (error) {
+          alert(error.message);
+        }
+      });
+
+      async function loadGroups() {
+        const { data: groups, error: groupError } = await sb
+          .from('case_groups')
+          .select('*')
+          .order('sort_order', { ascending: true });
+
+        if (groupError) {
+          console.error(groupError);
+          return;
+        }
+
+        const { data: cases, error: caseError } = await sb
+          .from('cases')
+          .select('*')
+          .order('sort_order', { ascending: true });
+
+        if (caseError) {
+          console.error(caseError);
+          return;
+        }
+
+        const { data: caseItems, error: contentError } = await sb
+          .from('case_items')
+          .select('case_id, items(title)');
+
+        if (contentError) {
+          console.error(contentError);
+          return;
+        }
+
+        const options = groups.map((group) => `
+          <option value="${group.id}">${group.title}</option>
+        `).join('');
+
+        caseGroupSelect.innerHTML = options || '<option value="">Нет разделов</option>';
+        itemCaseSelect.innerHTML = (cases || [])
+          .map((item) => `<option value="${item.id}">${item.title} · ${Number(item.price || 0).toFixed(0)} ₽</option>`)
+          .join('') || '<option value="">Нет кейсов</option>';
+
+        caseGroupsList.innerHTML = groups.length
+          ? groups.map((group) => {
+              const groupCases = (cases || []).filter((item) => item.group_id === group.id);
+
+              return `
+                <div class="group-item">
+                  <div class="group-item__header">
+                    <div class="group-item__title">${group.title}</div>
+                    <button class="chip danger" type="button" data-delete-group="${group.id}">Удалить</button>
+                  </div>
+
+                  <div class="case-list">
+                    ${groupCases.length
+                      ? groupCases.map((item) => `
+                                  ${(() => {
+                                    const contents = (caseItems || [])
+                                      .filter((link) => link.case_id === item.id)
+                                      .map((link) => link.items?.title)
+                                      .filter(Boolean);
+                                    return `<span class="muted">Состав: ${contents.length ? contents.join(', ') : 'не настроен'}</span>`;
+                                  })()}
+                          <div class="case-item">
+                            <img class="case-item__img" src="${item.image_url || 'https://placehold.co/72x72'}" alt="${item.title}" />
+                            <div class="case-item__meta">
+                              <strong>${item.title}</strong>
+                              <span class="muted">${Number(item.price || 0).toFixed(0)} ₽</span>
+                              <label class="muted">Шанс окупа, %
+                                <input class="field" type="number" min="0" max="100" step="0.01" value="${Number(item.payout_chance ?? 25)}" data-case-payout-chance="${item.id}" />
+                              </label>
+                            </div>
+                            <button class="chip danger" type="button" data-delete-case="${item.id}">Удалить</button>
+                          </div>
+                        `).join('')
+                      : '<div class="empty">Нет кейсов в этом разделе</div>'}
+                  </div>
+                </div>
+              `;
+            }).join('')
+          : '<div class="empty">Разделы ещё не созданы</div>';
+      }
+
+      async function loadItems() {
+        const { data, error } = await sb
+          .from('items')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        const { data: links, error: linksError } = await sb
+          .from('case_items')
+          .select('case_id, item_id, drop_chance, cases(title)');
+
+        if (linksError) {
+          console.error(linksError);
+          return;
+        }
+
+        itemsList.innerHTML = (data || []).length
+          ? data.map((item) => `
+              <div class="case-item">
+                <img class="case-item__img" src="${item.image_url || 'https://placehold.co/72x72'}" alt="${item.title}" />
+                <div class="case-item__meta">
+                  <div class="item-edit-fields">
+                    <input type="text" value="${item.title}" data-edit-item-title="${item.id}" aria-label="Название предмета" />
+                    <select data-edit-item-rarity="${item.id}" aria-label="Качество предмета">
+                      ${['gray', 'blue', 'green', 'red', 'purple', 'pink', 'gold'].map((rarity) => `<option value="${rarity}" ${item.rarity === rarity ? 'selected' : ''}>${rarity}</option>`).join('')}
+                    </select>
+                    <input type="url" value="${item.image_url || ''}" placeholder="PNG URL" data-edit-item-image="${item.id}" aria-label="PNG иконки предмета" />
+                  </div>
+                  <span class="muted">${Number(item.price || 0).toFixed(0)} ₽</span>
+                  <div class="item-case-links">
+                    ${(links || []).filter((link) => link.item_id === item.id).map((link) => `
+                      <label class="item-case-link">
+                        ${link.cases?.title || 'Кейс'}
+                        <input type="number" min="0" step="0.01" value="${Number(link.drop_chance || 0)}" data-drop-chance-item="${item.id}" data-drop-chance-case="${link.case_id}" aria-label="Шанс выпадения для ${link.cases?.title || 'кейса'}" />%
+                      </label>
+                    `).join('') || '<span class="muted">Кейс не выбран</span>'}
+                  </div>
+                </div>
+                <div class="inline-actions">
+                  <button class="chip primary" type="button" data-save-item="${item.id}">Сохранить</button>
+                  <button class="chip danger" type="button" data-delete-item="${item.id}">Удалить</button>
+                </div>
+              </div>
+            `).join('')
+          : '<div class="empty">Предметы ещё не добавлены</div>';
+      }
+
+      async function loadCaseOptions() {
+        const { data, error } = await sb
+          .from('cases')
+          .select('id, title, price')
+          .eq('is_active', true)
+          .order('title');
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        itemCaseSelect.innerHTML = (data || [])
+          .map((item) => `<option value="${item.id}">${item.title} · ${Number(item.price || 0).toFixed(0)} ₽</option>`)
+          .join('') || '<option value="">Нет кейсов</option>';
+      }
+
+      document.getElementById('createItemForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const caseId = itemCaseSelect.value;
+        const dropChance = Number(document.getElementById('caseDropChance').value || 1);
+
+        if (!caseId) {
+          alert('Выберите кейс для предмета');
+          return;
+        }
+
+        const { data: newItem, error } = await sb.from('items').insert({
+          title: document.getElementById('itemTitle').value.trim(),
+          rarity: document.getElementById('itemRarity').value,
+          price: Number(document.getElementById('itemPrice').value || 0),
+          image_url: document.getElementById('itemImage').value.trim(),
+          is_active: true
+        }).select('id').single();
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        const { error: contentError } = await sb
+          .from('case_items')
+          .insert({ case_id: caseId, item_id: newItem.id, drop_chance: dropChance });
+
+        if (contentError) {
+          alert(contentError.message);
+          return;
+        }
+
+        event.target.reset();
+        await loadItems();
+        await loadGroups();
+      });
+
+      document.addEventListener('change', async (event) => {
+        const payoutInput = event.target.closest('[data-case-payout-chance]');
+        if (payoutInput) {
+          const payoutChance = Math.max(0, Math.min(100, Number(payoutInput.value || 0)));
+          payoutInput.value = payoutChance;
+          const { error } = await sb.from('cases')
+            .update({ payout_chance: payoutChance })
+            .eq('id', payoutInput.dataset.casePayoutChance);
+          if (error) alert(error.message);
+          return;
+        }
+
+        const chanceInput = event.target.closest('[data-drop-chance-item]');
+        if (!chanceInput) {
+          return;
+        }
+
+        const dropChance = Math.max(0, Number(chanceInput.value || 0));
+        chanceInput.value = dropChance;
+        const { error } = await sb
+          .from('case_items')
+          .update({ drop_chance: dropChance })
+          .eq('item_id', chanceInput.dataset.dropChanceItem)
+          .eq('case_id', chanceInput.dataset.dropChanceCase);
+
+        if (error) {
+          alert(error.message);
+          await loadItems();
+        }
+      });
+
+      document.getElementById('createGroupForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const slug = document.getElementById('groupSlug').value.trim();
+        const title = document.getElementById('groupTitle').value.trim();
+
+        if (!slug || !title) {
+          alert('Введите slug и название раздела');
+          return;
+        }
+
+        const { data: lastGroup, error: orderError } = await sb
+          .from('case_groups')
+          .select('sort_order')
+          .order('sort_order', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (orderError) {
+          alert(orderError.message);
+          return;
+        }
+
+        const { error } = await sb
+          .from('case_groups')
+          .insert({
+            slug,
+            title,
+            sort_order: Number(lastGroup?.sort_order || 0) + 1,
+            is_active: true
+          });
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        event.target.reset();
+        await loadGroups();
+      });
+
+      document.getElementById('createCaseForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const groupId = caseGroupSelect.value;
+        const slug = document.getElementById('caseSlug').value.trim();
+        const title = document.getElementById('caseTitle').value.trim();
+        const price = Number(document.getElementById('casePrice').value || 0);
+        const payoutChance = Math.max(0, Math.min(100, Number(document.getElementById('casePayoutChance').value || 25)));
+        const imageUrl = document.getElementById('caseImage').value.trim();
+        if (!groupId || !slug || !title) {
+          alert('Заполните все обязательные поля');
+          return;
+        }
+
+        const { data: newCase, error } = await sb
+          .from('cases')
+          .insert({
+            group_id: groupId,
+            slug,
+            title,
+            price,
+            payout_chance: payoutChance,
+            image_url: imageUrl || '',
+            accent_color: '#7d5dff',
+            is_active: true,
+            sort_order: 0
+          })
+          .select('id')
+          .single();
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        event.target.reset();
+        await loadGroups();
+      });
+
+      document.addEventListener('click', async (event) => {
+        const chancesToggle = event.target.closest('[data-user-chance-toggle]');
+        if (chancesToggle) {
+          const enabled = chancesToggle.dataset.enabled !== 'true';
+          const { data, error } = await sb.from('profiles')
+            .update({ payout_system_enabled: enabled })
+            .eq('id', chancesToggle.dataset.userChanceToggle)
+            .select('payout_system_enabled')
+            .single();
+          if (error) {
+            alert(error.message);
+            return;
+          }
+          if (!data) {
+            alert('Пользователь не найден или настройка не обновлена.');
+            return;
+          }
+          await loadUsers();
+          return;
+        }
+
+        const withdrawalButton = event.target.closest('[data-confirm-withdraw], [data-cancel-withdraw]');
+        if (withdrawalButton) {
+          const userId = withdrawalButton.dataset.confirmWithdraw || withdrawalButton.dataset.cancelWithdraw;
+          const itemIndex = Number(withdrawalButton.dataset.withdrawIndex);
+          const { data: user, error: userError } = await sb
+            .from('profiles')
+            .select('inventory')
+            .eq('id', userId)
+            .single();
+
+          if (userError) {
+            alert(userError.message);
+            return;
+          }
+
+          const inventory = Array.isArray(user.inventory) ? user.inventory : [];
+          const item = inventory[itemIndex];
+          if (!item) return;
+          if (withdrawalButton.dataset.confirmWithdraw) {
+            inventory.splice(itemIndex, 1);
+          } else {
+            item.pendingWithdraw = false;
+            delete item.withdrawalStatus;
+          }
+
+          const { error } = await sb.from('profiles').update({ inventory }).eq('id', userId);
+          if (error) {
+            alert(error.message);
+            return;
+          }
+          await loadWithdrawals();
+          return;
+        }
+
+        const saveItemBtn = event.target.closest('[data-save-item]');
+        if (saveItemBtn) {
+          const itemId = saveItemBtn.dataset.saveItem;
+          const titleInput = document.querySelector(`[data-edit-item-title="${itemId}"]`);
+          const rarityInput = document.querySelector(`[data-edit-item-rarity="${itemId}"]`);
+          const imageInput = document.querySelector(`[data-edit-item-image="${itemId}"]`);
+          const title = titleInput?.value.trim();
+          const imageUrl = imageInput?.value.trim();
+
+          if (!title || !imageUrl) {
+            alert('Заполните название и PNG-ссылку');
+            return;
+          }
+
+          const { error } = await sb
+            .from('items')
+            .update({ title, rarity: rarityInput.value, image_url: imageUrl })
+            .eq('id', itemId);
+
+          if (error) {
+            alert(error.message);
+            return;
+          }
+
+          await loadItems();
+          return;
+        }
+
+        const deleteGroupBtn = event.target.closest('[data-delete-group]');
+        if (deleteGroupBtn) {
+          const groupId = deleteGroupBtn.dataset.deleteGroup;
+
+          const { error } = await sb
+            .from('case_groups')
+            .delete()
+            .eq('id', groupId);
+
+          if (error) {
+            alert(error.message);
+            return;
+          }
+
+          await loadGroups();
+        }
+
+        const deleteCaseBtn = event.target.closest('[data-delete-case]');
+        if (deleteCaseBtn) {
+          const caseId = deleteCaseBtn.dataset.deleteCase;
+
+          const { error } = await sb
+            .from('cases')
+            .delete()
+            .eq('id', caseId);
+
+          if (error) {
+            alert(error.message);
+            return;
+          }
+
+          await loadGroups();
+        }
+
+        const deleteItemBtn = event.target.closest('[data-delete-item]');
+        if (deleteItemBtn) {
+          const { error } = await sb
+            .from('items')
+            .delete()
+            .eq('id', deleteItemBtn.dataset.deleteItem);
+
+          if (error) {
+            alert(error.message);
+            return;
+          }
+
+          await loadItems();
+        }
+      });
+
+      async function loadSettings() {
+        const { data, error } = await sb
+          .from('site_settings')
+          .select('*');
+
+        if (error) {
+          console.error(error);
+          return;
+        }
+
+        const settingsMap = {};
+        (data || []).forEach((item) => {
+          settingsMap[item.key] = item.value;
+        });
+
+        document.getElementById('siteTitle').value = settingsMap.site_title?.value || '';
+        document.getElementById('siteCurrency').value = settingsMap.site_currency?.value || '';
+      }
+
+      document.getElementById('settingsForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const title = document.getElementById('siteTitle').value.trim();
+        const currency = document.getElementById('siteCurrency').value.trim();
+
+        const payload = [];
+
+        if (title) {
+          payload.push({ key: 'site_title', value: { value: title } });
+        }
+
+        if (currency) {
+          payload.push({ key: 'site_currency', value: { value: currency } });
+        }
+
+        const { error } = await sb
+          .from('site_settings')
+          .upsert(payload, { onConflict: 'key' });
+
+        if (error) {
+          alert(error.message);
+          return;
+        }
+
+        alert('Настройки сохранены');
+      });
+
+      sb
+        .channel('cb_admin_realtime')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async () => {
+          await loadUsers();
+          await loadWithdrawals();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'case_groups' }, async () => {
+          await loadGroups();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cases' }, async () => {
+          await loadGroups();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'items' }, async () => {
+          await loadItems();
+          await loadGroups();
+        })
+        .subscribe();
+
+      setCurrentUserBadge();
+      showAdmin();
+      Promise.all([loadUsers(), loadGroups(), loadItems(), loadSettings(), loadCaseOptions(), loadWithdrawals()]);
+    </script>
+  </body>
+</html>
